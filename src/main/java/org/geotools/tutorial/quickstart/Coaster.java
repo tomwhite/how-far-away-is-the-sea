@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.io.WKTReader;
 import com.vividsolutions.jts.operation.distance.DistanceOp;
+import com.vividsolutions.jts.operation.distance.GeometryLocation;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,25 +25,20 @@ import org.opengis.feature.Feature;
 public class Coaster {
 
   public static void main(String[] args) throws Exception {
-    File file = new File("/Users/tom/Downloads/ne_10m_land/ne_10m_land.shp");
+    File file = new File("/Users/tom/Downloads/ne_10m_ocean/ne_10m_ocean.shp");
 
     FileDataStore store = FileDataStoreFinder.getDataStore(file);
     SimpleFeatureSource featureSource = store.getFeatureSource();
     FeatureCollection collection = featureSource.getFeatures();
     FeatureIterator iterator = collection.features();
 
-    System.out.println(featureSource.getSchema().getCoordinateReferenceSystem());
+    //System.out.println(featureSource.getSchema().getCoordinateReferenceSystem());
 
     try {
       while (iterator.hasNext()) {
         Feature feature = iterator.next();
-        System.out.println(feature.getClass());
-        System.out.println(feature.getIdentifier().getID());
 
         SimpleFeatureImpl sf = (SimpleFeatureImpl) feature;
-        int attributeCount = sf.getAttributeCount();
-        System.out.println(sf.getDefaultGeometryProperty().getType());
-        System.out.println( sf.getDefaultGeometry().getClass());
 
         GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
         WKTReader reader = new WKTReader(geometryFactory);
@@ -51,10 +47,11 @@ public class Coaster {
         Object geo = sf.getDefaultGeometry();
         if (geo instanceof MultiPolygon) {
           MultiPolygon mp = (MultiPolygon) geo;
-          System.out.println(mp.contains(point));
+          System.out.println("Inland? " + mp.contains(point));
           DistanceOp d = new DistanceOp(point, mp);
-          System.out.println(d.nearestLocations()[0].getCoordinate());
-          System.out.println(d.nearestLocations()[1].getCoordinate());
+          GeometryLocation[] locs = d.nearestLocations();
+          System.out.println("Point: " + locs[0].getCoordinate());
+          System.out.println("Closest point on coast: " + locs[1].getCoordinate());
         }
 
       }

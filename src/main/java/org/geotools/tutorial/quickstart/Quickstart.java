@@ -31,7 +31,7 @@ public class Quickstart {
 //            return;
 //        }
 
-        File file = new File("/Users/tom/Downloads/ne_10m_land/ne_10m_land.shp");
+        File file = new File("/Users/tom/Downloads/ne_10m_land/ne_10m_coastline.shp");
 
         FileDataStore store = FileDataStoreFinder.getDataStore(file);
         SimpleFeatureSource featureSource = store.getFeatureSource();
