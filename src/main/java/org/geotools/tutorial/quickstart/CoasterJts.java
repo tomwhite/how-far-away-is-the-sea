@@ -1,6 +1,7 @@
 package org.geotools.tutorial.quickstart;
 
-import com.vividsolutions.jts.geom.Geometry;
+import com.spatial4j.core.context.SpatialContext;
+import com.spatial4j.core.distance.DistanceUtils;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
@@ -13,9 +14,6 @@ import com.vividsolutions.jts.operation.distance.GeometryLocation;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import org.geotools.geometry.jts.JTS;
-import org.geotools.geometry.jts.JTSFactoryFinder;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 public class CoasterJts {
 
@@ -28,7 +26,7 @@ public class CoasterJts {
   }
 
   public DistanceToCoast distanceFromCoast(double lat, double lng) throws IOException {
-    GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+    GeometryFactory geometryFactory =  new GeometryFactory();
     WKTReader reader = new WKTReader(geometryFactory);
     Point point = null;
     try {
@@ -39,13 +37,12 @@ public class CoasterJts {
 
     MultiPolygon landMultiPolygon = extractMultiPolygon(landGeometry);
 
-//    if (landMultiPolygon.contains(point)) {
-//      MultiPolygon oceanMultiPolygon = extractMultiPolygon(oceanShapeFile);
-//      return distanceToCoast(true, oceanMultiPolygon, point);
-//    } else {
-//      return distanceToCoast(false, landMultiPolygon, point);
-//    }
-    return distanceToCoast(true, landMultiPolygon, point);
+    if (landMultiPolygon.contains(point)) {
+      MultiPolygon oceanMultiPolygon = extractMultiPolygon(oceanGeometry);
+      return distanceToCoast(true, oceanMultiPolygon, point);
+    } else {
+      return distanceToCoast(false, landMultiPolygon, point);
+    }
   }
 
   private DistanceToCoast distanceToCoast(boolean onLand, MultiPolygon mp, Point point) throws IOException {
@@ -53,10 +50,13 @@ public class CoasterJts {
     GeometryLocation[] locs = d.nearestLocations();
     System.out.println(locs[0].getCoordinate().y + "," + locs[0].getCoordinate().x);
     System.out.println(locs[1].getCoordinate().y + "," + locs[1].getCoordinate().x);
-    CoordinateReferenceSystem crs = null;
+    SpatialContext ctx = SpatialContext.GEO;
+    com.spatial4j.core.shape.Point p1 = ctx.makePoint(locs[0].getCoordinate().x, locs[0].getCoordinate().y);
+    com.spatial4j.core.shape.Point p2 = ctx.makePoint(locs[1].getCoordinate().x, locs[1].getCoordinate().y);
+    double distance = DistanceUtils.degrees2Dist(ctx.getDistCalc().distance(p1, p2), DistanceUtils.EARTH_MEAN_RADIUS_KM) * 1000;
     return new DistanceToCoast(locs[0].getCoordinate().y, locs[0].getCoordinate().x,
         locs[1].getCoordinate().y, locs[1].getCoordinate().x,
-        onLand, 0);
+        onLand, distance);
   }
 
   private MultiPolygon extractMultiPolygon(URL shapeFile) throws IOException {

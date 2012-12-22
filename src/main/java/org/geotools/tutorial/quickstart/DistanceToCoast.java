@@ -43,4 +43,16 @@ public class DistanceToCoast {
   public double getDistanceToCoast() {
     return distanceToCoast;
   }
+
+  @Override
+  public String toString() {
+    return "DistanceToCoast{" +
+        "latitude=" + latitude +
+        ", longitude=" + longitude +
+        ", coastLatitude=" + coastLatitude +
+        ", coastLongitude=" + coastLongitude +
+        ", onLand=" + onLand +
+        ", distanceToCoast=" + distanceToCoast +
+        '}';
+  }
 }

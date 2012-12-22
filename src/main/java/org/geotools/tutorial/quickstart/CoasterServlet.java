@@ -1,12 +1,12 @@
 package org.geotools.tutorial.quickstart;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class CoasterServlet extends HttpServlet {
 
@@ -37,10 +37,7 @@ public class CoasterServlet extends HttpServlet {
       } else {
         resp.getWriter().println("You are at sea!");
       }
-      // original lat/long
-      // coastal lat/long
-      // on land (true/false)
-      // distance to coast
+      resp.getWriter().println(d);
     }
   }
 }
