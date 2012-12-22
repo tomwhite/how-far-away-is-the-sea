@@ -9,6 +9,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
 import com.vividsolutions.jts.operation.distance.GeometryLocation;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureSource;
@@ -23,10 +24,10 @@ import org.opengis.referencing.operation.TransformException;
 
 public class Coaster {
 
-  private final File landShapeFile;
-  private final File oceanShapeFile;
+  private final URL landShapeFile;
+  private final URL oceanShapeFile;
 
-  public Coaster(File landShapeFile, File oceanShapeFile) {
+  public Coaster(URL landShapeFile, URL oceanShapeFile) {
     this.landShapeFile = landShapeFile;
     this.oceanShapeFile = oceanShapeFile;
   }
@@ -68,7 +69,7 @@ public class Coaster {
     }
   }
 
-  private MultiPolygon extractMultiPolygon(File shapeFile) throws IOException {
+  private MultiPolygon extractMultiPolygon(URL shapeFile) throws IOException {
     FileDataStore store = FileDataStoreFinder.getDataStore(shapeFile);
     SimpleFeatureSource featureSource = store.getFeatureSource();
     FeatureCollection collection = featureSource.getFeatures();
@@ -96,7 +97,7 @@ public class Coaster {
     String lat = args[2];
     String lng = args[3];
 
-    Coaster coaster = new Coaster(landShapeFile, oceanShapeFile);
+    Coaster coaster = new Coaster(landShapeFile.toURL(), oceanShapeFile.toURL());
     DistanceToCoast distanceToCoast = coaster.distanceFromCoast(Double.parseDouble(lat), Double.parseDouble(lng));
     if (distanceToCoast.isOnLand()) {
       System.out.println("You are on land!");

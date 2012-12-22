@@ -2,9 +2,22 @@ package org.geotools.tutorial.quickstart;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.http.*;
 
 public class CoasterServlet extends HttpServlet {
+
+  private ServletConfig config;
+
+  @Override
+  public void init(ServletConfig config) {
+    this.config = config;
+  }
+
+  @Override
   public void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws IOException {
     String lat = req.getParameter("lat");
@@ -13,7 +26,11 @@ public class CoasterServlet extends HttpServlet {
     if (lat == null || lat.length() == 0 || lng == null || lng.length() == 0) {
       resp.sendError(404, "Please specify lat/long parameters.");
     } else {
-      Coaster coaster = new Coaster(new File("/Users/tom/Downloads/ne_10m_land/ne_10m_land.shp"), new File("/Users/tom/Downloads/ne_10m_ocean/ne_10m_ocean.shp"));
+      ServletContext context = config.getServletContext();
+      URL landShapeFile = context.getResource("/WEB-INF/data/land.bin");
+      URL oceanShapeFile = context.getResource("/WEB-INF/data/ocean.bin");
+
+      CoasterJts coaster = new CoasterJts(landShapeFile, oceanShapeFile);
       DistanceToCoast d = coaster.distanceFromCoast(Double.parseDouble(lat), Double.parseDouble(lng));
       if (d.isOnLand()) {
         resp.getWriter().println("You are on land!");

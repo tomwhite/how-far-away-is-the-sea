@@ -5,17 +5,17 @@ public class DistanceToCoast {
   private final double latitude;
   private final double longitude;
   private final double coastLatitude;
-  private final double coastlongitude;
+  private final double coastLongitude;
   private final boolean onLand;
   private final double distanceToCoast;
 
   public DistanceToCoast(double latitude, double longitude,
-      double coastLatitude, double coastlongitude,
+      double coastLatitude, double coastLongitude,
       boolean onLand, double distanceToCoast) {
     this.latitude = latitude;
     this.longitude = longitude;
     this.coastLatitude = coastLatitude;
-    this.coastlongitude = coastlongitude;
+    this.coastLongitude = coastLongitude;
     this.onLand = onLand;
     this.distanceToCoast = distanceToCoast;
   }
@@ -33,7 +33,7 @@ public class DistanceToCoast {
   }
 
   public double getCoastlongitude() {
-    return coastlongitude;
+    return coastLongitude;
   }
 
   public boolean isOnLand() {
