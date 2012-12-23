@@ -5,12 +5,12 @@
 
 <web-app xmlns="http://java.sun.com/xml/ns/javaee" version="2.5">
     <servlet>
-        <servlet-name>howfarawayisthesea</servlet-name>
+        <servlet-name>query</servlet-name>
         <servlet-class>name.tomwhite.howfarawayisthesea.HowFarAwayIsTheSeaServlet</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>howfarawayisthesea</servlet-name>
-        <url-pattern>/howfarawayisthesea</url-pattern>
+        <servlet-name>query</servlet-name>
+        <url-pattern>/query</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
