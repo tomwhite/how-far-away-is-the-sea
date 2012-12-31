@@ -30,6 +30,7 @@
   <script type="text/javascript">
     var map;
     var marker;
+    var request;
     var coastMarker;
     function initialize() {
       var mapOptions = {
@@ -45,11 +46,11 @@
           var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
           map.setCenter(pos);
           howfarawayisthesea(pos);
-        }, function() { $("#msg").text("Can't get current location. Please select."); addManualListener(); });
+        }, function() { $("#msg").text("Can't get current location. Please select."); });
       } else {
         $("#msg").text("Select location");
-        addManualListener();
       }
+      addManualListener();
     }
 
     function addManualListener() {
@@ -61,7 +62,10 @@
     function howfarawayisthesea(latLng) {
       placeMarker(latLng);
       $("#msg").text("Calculating...");
-      $.get('http://how-far-away-is-the-sea.appspot.com/query',
+      if (request !== undefined) {
+        request.abort();
+      }
+      request = $.get('http://how-far-away-is-the-sea.appspot.com/query',
         {lat:latLng.lat(), lng:latLng.lng()},
         function(data) {
           placeCoastMarker(data);
@@ -92,7 +96,12 @@
       });
       var km = data.distanceToCoast/1000;
       var miles = km * 0.62137;
-      $("#msg").text("About " + km.toFixed(0) + " km/" + miles.toFixed(0) + " miles");
+      var text = "About " + km.toFixed(0) + " km/" + miles.toFixed(0) + " miles";
+      if (data.onLand) {
+        $("#msg").text(text);
+      } else {
+        $("#msg").text(text + " from land!");
+      }
 
       // fit to markers
       var bounds = new google.maps.LatLngBounds();
@@ -115,6 +124,7 @@
     </td></tr>
     <tr><td id="tdfooter">
       <div id="ft">
+        <p>Click on map to select location, or <a href="index.html">use current location</a></p>
         <p id="builtby">Built by <a href="http://www.lexemetech.com/">Tom White</a>. Layout inspired by <a href="http://www.getlatlon.com/">Get Lat Lon</a>.</p>
       </div>
     </td></tr>
