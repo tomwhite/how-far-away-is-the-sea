@@ -32,7 +32,7 @@ public class DistanceToCoast {
     return coastLatitude;
   }
 
-  public double getCoastlongitude() {
+  public double getCoastLongitude() {
     return coastLongitude;
   }
 

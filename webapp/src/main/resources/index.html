@@ -45,7 +45,7 @@
           var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
           map.setCenter(pos);
           howfarawayisthesea(pos);
-        }, function() { $("#msg").text("Select location"); addManualListener(); });
+        }, function() { $("#msg").text("Can't get current location. Please select."); addManualListener(); });
       } else {
         $("#msg").text("Select location");
         addManualListener();
@@ -62,7 +62,7 @@
       placeMarker(latLng);
       $("#msg").text("Calculating...");
       $.get('http://how-far-away-is-the-sea.appspot.com/query',
-        {lat:latLng.lat(), long:latLng.lng()},
+        {lat:latLng.lat(), lng:latLng.lng()},
         function(data) {
           placeCoastMarker(data);
         },
@@ -99,7 +99,6 @@
       bounds.extend(marker.position);
       bounds.extend(coastMarker.position);
       map.fitBounds(bounds);
-      addManualListener();
     }
   </script>
 </head>
@@ -116,7 +115,7 @@
     </td></tr>
     <tr><td id="tdfooter">
       <div id="ft">
-        <p id="builtby">Built by <a href="http://www.lexemetech.com/">Tom White</a></p>
+        <p id="builtby">Built by <a href="http://www.lexemetech.com/">Tom White</a>. Layout inspired by <a href="http://www.getlatlon.com/">Get Lat Lon</a>.</p>
       </div>
     </td></tr>
   </table>

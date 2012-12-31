@@ -48,8 +48,6 @@ public class HowFarAwayIsTheSea {
   private DistanceToCoast distanceToCoast(boolean onLand, MultiPolygon mp, Point point) throws IOException {
     DistanceOp d = new DistanceOp(point, mp);
     GeometryLocation[] locs = d.nearestLocations();
-    System.out.println(locs[0].getCoordinate().y + "," + locs[0].getCoordinate().x);
-    System.out.println(locs[1].getCoordinate().y + "," + locs[1].getCoordinate().x);
     SpatialContext ctx = SpatialContext.GEO;
     com.spatial4j.core.shape.Point p1 = ctx.makePoint(locs[0].getCoordinate().x, locs[0].getCoordinate().y);
     com.spatial4j.core.shape.Point p2 = ctx.makePoint(locs[1].getCoordinate().x, locs[1].getCoordinate().y);

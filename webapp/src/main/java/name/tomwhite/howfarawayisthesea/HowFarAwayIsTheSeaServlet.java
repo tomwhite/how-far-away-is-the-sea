@@ -31,7 +31,7 @@ public class HowFarAwayIsTheSeaServlet extends HttpServlet {
   public void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws IOException {
     String lat = req.getParameter("lat");
-    String lng = req.getParameter("long");
+    String lng = req.getParameter("lng");
     resp.setContentType("text/plain");
     if (lat == null || lat.length() == 0 || lng == null || lng.length() == 0) {
       resp.sendError(404, "Please specify lat/long parameters.");
