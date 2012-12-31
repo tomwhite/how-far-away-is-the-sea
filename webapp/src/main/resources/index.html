@@ -96,7 +96,11 @@
       });
       var km = data.distanceToCoast/1000;
       var miles = km * 0.62137;
-      var text = "About " + km.toFixed(0) + " km/" + miles.toFixed(0) + " miles";
+      if (km > 2.0) {
+        var text = "About " + km.toFixed(0) + " km/" + miles.toFixed(0) + " miles";
+      } else {
+        var text = "Less than two km/one mile";
+      }
       if (data.onLand) {
         $("#msg").text(text);
       } else {
