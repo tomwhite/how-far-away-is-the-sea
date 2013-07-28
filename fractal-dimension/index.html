@@ -1,0 +1,72 @@
+<html>
+
+  <head>
+    <title>How Long Is The Coast of Britain?</title>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jsxgraph/0.97/jsxgraphcore.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script type="text/javascript" src="britain.js"></script>
+    
+  </head>
+
+  <body>
+    <table cellspacing="20">
+      <tr>
+        <td>
+          <div id="box1" class="jxgbox" style="width:200px; height:200px"></div>
+        </td>
+        <td>
+          <div id="box2" class="jxgbox" style="width:200px; height:200px"></div>
+        </td>
+        <td>
+          <div id="box3" class="jxgbox" style="width:200px; height:200px"></div>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <div id="box4" class="jxgbox" style="width:200px; height:200px"></div>
+        </td>
+        <td>
+          <div id="box5" class="jxgbox" style="width:200px; height:200px"></div>
+        </td>
+        <td>
+          <div id="box6" class="jxgbox" style="width:200px; height:200px"></div>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <div id="box7" class="jxgbox" style="width:200px; height:200px"></div>
+        </td>
+        <td>
+          <div id="box8" class="jxgbox" style="width:200px; height:200px"></div>
+        </td>
+        <td>
+          <div id="box9" class="jxgbox" style="width:200px; height:200px"></div>
+        </td>
+      </tr>
+    </table>
+
+    <script type="text/javascript">
+
+    function createBoard(id, stepFactor) {
+      var board = JXG.JSXGraph.initBoard('box' + id, {
+        boundingbox: [-6.236398891999897, -58.67706940300005, 1.7711694670000497, -49.959133205000086],
+        showCopyright: false,
+        showNavigation: false
+      });
+
+      var points = new Array();
+      for( item=0 ; item < poly.length-1 ; item+=2*stepFactor ){
+        points[item/(2*stepFactor)] = board.create('point', [poly[item], -poly[item+1]], {fixed:true, size:0, withLabel:false, visible:false});
+      }
+      coast = board.createElement('polygon', points);
+      coast.hasPoint = function() { return false;};     
+    }
+    
+    for (var i = 1; i <= 9; i++) {
+      createBoard(10 - i, Math.pow(2, i));
+    }
+    
+    </script>
+  </body>
+  
+</html>
