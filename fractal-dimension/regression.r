@@ -1,0 +1,21 @@
+# Enter columns as calculated by DumpCoast program
+x=c(40.02177855743041,20.926887304365344,11.364379535864254,6.435809731800157,3.7523206497028117,2.268029441545984,1.4504876804847864,0.8834338574652224,0.6043891952733216)
+y=c(92.62456926247125,88.59415989750448,81.57066534732749,72.09660001403037,61.82840478155156,51.145720542732256,39.986551268477555,32.82645299921803,24.81844499754266)
+
+# Take logs
+lx <- log(x)
+ly <- log(y)
+
+# Plot points
+plot (lx, ly)
+
+# Do linear regression
+lin=lm(ly~lx)
+
+# Superimpose regression line
+abline(lin, col="blue", untf=TRUE)
+
+# Print out intercept and slope
+coef(lin)
+
+# Slope is 0.31 like in Chaos and Fractals book
