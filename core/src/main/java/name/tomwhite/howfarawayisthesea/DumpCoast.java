@@ -12,6 +12,11 @@ import com.vividsolutions.jts.io.WKTReader;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import org.geotools.geometry.jts.JTS;
+import org.geotools.referencing.CRS;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
 
 public class DumpCoast {
 
@@ -32,7 +37,7 @@ public class DumpCoast {
     DumpCoast.dump(landShapeFile.toURL(), meta);
   }
 
-  private static void dump(URL landGeometry, boolean meta) throws IOException {
+  private static void dump(URL landGeometry, boolean meta) throws Exception {
     GeometryFactory geometryFactory =  new GeometryFactory();
     WKTReader reader = new WKTReader(geometryFactory);
 
@@ -79,13 +84,19 @@ public class DumpCoast {
       return;
     }
 
+    CoordinateReferenceSystem sourceCRS = DefaultGeographicCRS.WGS84;
+    CoordinateReferenceSystem targetCRS = CRS.decode("EPSG:27700"); // British National Grid
+
+    MathTransform transform = CRS.findMathTransform(sourceCRS, targetCRS);
+    Geometry b2 = JTS.transform(britain, transform);
+
     System.out.println("var poly = [");
-    for (Coordinate coord : britain.getCoordinates()) {
+    for (Coordinate coord : b2.getCoordinates()) {
       System.out.println(coord.x + ", " + coord.y + ", ");
     }
     System.out.println("];");
     System.out.println("var bounds = [");
-    for (Coordinate coord : britain.getEnvelope().getCoordinates()) {
+    for (Coordinate coord : b2.getEnvelope().getCoordinates()) {
       System.out.println(coord.x + ", " + coord.y + ", ");
     }
     System.out.println("];");
