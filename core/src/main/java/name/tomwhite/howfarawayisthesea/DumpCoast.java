@@ -85,7 +85,7 @@ public class DumpCoast {
     }
 
     CoordinateReferenceSystem sourceCRS = DefaultGeographicCRS.WGS84;
-    CoordinateReferenceSystem targetCRS = CRS.decode("EPSG:27700"); // British National Grid
+    CoordinateReferenceSystem targetCRS = CRS.decode("EPSG:3857"); // Spherical Mercator projection coordinate system
 
     MathTransform transform = CRS.findMathTransform(sourceCRS, targetCRS);
     Geometry b2 = JTS.transform(britain, transform);

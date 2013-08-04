@@ -49,8 +49,7 @@
 
     function createBoard(id, stepFactor) {
       var board = JXG.JSXGraph.initBoard('box' + id, {
-        boundingbox: [7.13279794829449, -6.831052992258645,
-        8.86344089464947, -5.192061067529698],
+        boundingbox: [-6.94232, 81.10914, 1.97165, 64.39201],
         showCopyright: false,
         showNavigation: false,
         keepaspectratio: true
@@ -58,14 +57,14 @@
 
       var points = new Array();
       for( item=0 ; item < poly.length-1 ; item+=2*stepFactor ){
-        points[item/(2*stepFactor)] = board.create('point', [poly[item]/1000000,
-        poly[item+1]/1000000], {fixed:true, size:0, withLabel:false, visible:false});
+        points[item/(2*stepFactor)] = board.create('point', [poly[item]/100000,
+        poly[item+1]/100000], {fixed:true, size:0, withLabel:false, visible:false});
       }
       coast = board.createElement('polygon', points);
       coast.hasPoint = function() { return false;};     
     }
     
-    for (var i = 1; i <= 2; i++) {
+    for (var i = 1; i <= 9; i++) {
       createBoard(10 - i, Math.pow(2, i));
     }
     
