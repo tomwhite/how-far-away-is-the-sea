@@ -17,7 +17,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <geotools.version>10-SNAPSHOT</geotools.version>
+        <geotools.version>10.8</geotools.version>
     </properties>
 
     <dependencyManagement>

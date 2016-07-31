@@ -9,6 +9,7 @@ import com.vividsolutions.jts.io.InputStreamInStream;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 import com.vividsolutions.jts.io.WKTReader;
+import com.vividsolutions.jts.simplify.DouglasPeuckerSimplifier;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -60,6 +61,11 @@ public class DumpCoast {
       System.err.println("Could not find Britain!");
       System.exit(1);
     }
+
+    DouglasPeuckerSimplifier simplifier = new DouglasPeuckerSimplifier(britain);
+    simplifier.setDistanceTolerance(0.1); // vary from 0.1 to 4.0
+    Geometry simplifiedBritain = simplifier.getResultGeometry();
+    britain = simplifiedBritain;
 
     if (meta) {
       System.out.println("#points\tmean side (s)\t\t1/s\t\t\tlength");
