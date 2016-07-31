@@ -95,17 +95,19 @@ public class DumpCoast {
     MathTransform transform = CRS.findMathTransform(sourceCRS, targetCRS);
     Geometry b2 = JTS.transform(britain, transform);
 
-    System.out.println("var poly = [");
-    for (Coordinate coord : b2.getCoordinates()) {
-      System.out.println(coord.x + ", " + coord.y + ", ");
+    System.out.println("var poly = " + emitJavascriptArray(b2.getCoordinates()) + ";");
+    System.out.println("var bounds = " + emitJavascriptArray(b2.getEnvelope().getCoordinates()) + ";");
+  }
+
+  private static String emitJavascriptArray(Coordinate[] coords) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("[\n");
+    for (Coordinate coord : coords) {
+      sb.append(coord.x).append(", ").append(coord.y).append(", ").append("\n");
     }
-    System.out.println("];");
-    System.out.println("var bounds = [");
-    for (Coordinate coord : b2.getEnvelope().getCoordinates()) {
-      System.out.println(coord.x + ", " + coord.y + ", ");
-    }
-    System.out.println("];");
-}
+    sb.append("]");
+    return sb.toString();
+  }
 
   private static MultiPolygon extractMultiPolygon(URL shapeFile) throws IOException {
     try {
