@@ -65,7 +65,7 @@
       if (request !== undefined) {
         request.abort();
       }
-      request = $.get('http://how-far-away-is-the-sea.appspot.com/query',
+      request = $.get('/query',
         {lat:latLng.lat(), lng:latLng.lng()},
         function(data) {
           placeCoastMarker(data);
