@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>How far away is the sea?</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    html, body { height: 100%; margin: 0; padding: 0; font-family: sans-serif; }
+    #hd { text-align: center; border-bottom: 2px solid black; }
+    #ft { text-align: center; border-top: 2px solid black; font-size: 0.8em; }
+    #page { display: flex; flex-direction: column; height: 100%; }
+    #map { flex: 1; }
+    h1 { margin: 0.3em 0; }
+    h3 { margin: 0.2em 0; }
+  </style>
+</head>
+<body>
+  <div id="page">
+    <div id="hd">
+      <h1>How far away is the sea?</h1>
+      <h3 id="msg">Loading data&hellip;</h3>
+    </div>
+    <div id="map"></div>
+    <div id="ft">
+      <p>Click on map to select location, or <a href="" id="geolink">use current location</a></p>
+      <p>Built by <a href="https://tom-e-white.com/">Tom White</a>. Layout inspired by <a href="https://www.getlatlon.com/">Get Lat Lon</a>.</p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // --- WKB parser (MultiPolygon only) ---
+    function parseWKB(buffer) {
+      const view = new DataView(buffer);
+      let offset = 0;
+
+      function readByte() { return view.getUint8(offset++); }
+      function readUint32(le) { const v = view.getUint32(offset, le); offset += 4; return v; }
+      function readFloat64(le) { const v = view.getFloat64(offset, le); offset += 8; return v; }
+
+      function readGeometry() {
+        const le = readByte() === 1;
+        const type = readUint32(le);
+        if (type === 6) { // MultiPolygon
+          const n = readUint32(le);
+          const polygons = [];
+          for (let i = 0; i < n; i++) polygons.push(readGeometry());
+          return { type: 'MultiPolygon', polygons };
+        }
+        if (type === 3) { // Polygon
+          const numRings = readUint32(le);
+          const rings = [];
+          for (let r = 0; r < numRings; r++) {
+            const numPoints = readUint32(le);
+            const pts = new Float64Array(numPoints * 2);
+            for (let p = 0; p < numPoints; p++) {
+              pts[p * 2]     = readFloat64(le);
+              pts[p * 2 + 1] = readFloat64(le);
+            }
+            rings.push(pts);
+          }
+          return { type: 'Polygon', rings };
+        }
+        throw new Error('Unsupported WKB type: ' + type);
+      }
+
+      return readGeometry();
+    }
+
+    // --- Point-in-polygon (ray casting) ---
+    function pointInRing(x, y, pts) {
+      let inside = false;
+      const n = pts.length / 2;
+      for (let i = 0, j = n - 1; i < n; j = i++) {
+        const xi = pts[i * 2], yi = pts[i * 2 + 1];
+        const xj = pts[j * 2], yj = pts[j * 2 + 1];
+        if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi)
+          inside = !inside;
+      }
+      return inside;
+    }
+
+    function pointInMultiPolygon(x, y, mp) {
+      for (const poly of mp.polygons) {
+        if (!pointInRing(x, y, poly.rings[0])) continue;
+        let inHole = false;
+        for (let h = 1; h < poly.rings.length; h++) {
+          if (pointInRing(x, y, poly.rings[h])) { inHole = true; break; }
+        }
+        if (!inHole) return true;
+      }
+      return false;
+    }
+
+    // --- Nearest point on MultiPolygon boundary ---
+    function nearestPointOnMultiPolygon(x, y, mp) {
+      let minDistSq = Infinity, nx = 0, ny = 0;
+      for (const poly of mp.polygons) {
+        for (const pts of poly.rings) {
+          const n = pts.length / 2;
+          for (let i = 0, j = n - 1; i < n; j = i++) {
+            const ax = pts[j * 2], ay = pts[j * 2 + 1];
+            const bx = pts[i * 2], by = pts[i * 2 + 1];
+            const dx = bx - ax, dy = by - ay;
+            const lenSq = dx * dx + dy * dy;
+            let t = lenSq > 0 ? ((x - ax) * dx + (y - ay) * dy) / lenSq : 0;
+            t = Math.max(0, Math.min(1, t));
+            const cx = ax + t * dx, cy = ay + t * dy;
+            const distSq = (x - cx) * (x - cx) + (y - cy) * (y - cy);
+            if (distSq < minDistSq) { minDistSq = distSq; nx = cx; ny = cy; }
+          }
+        }
+      }
+      return [nx, ny];
+    }
+
+    // --- Haversine distance in metres ---
+    function haversineMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371008.8;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const phi1 = lat1 * Math.PI / 180, phi2 = lat2 * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(phi1) * Math.cos(phi2) * Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    // --- App ---
+    const msg = document.getElementById('msg');
+
+    const map = L.map('map').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    let landGeom = null, oceanGeom = null;
+    let marker = null, coastMarker = null;
+    let pendingLatlng = null;
+    let geolocating = false;
+
+    async function loadWKB(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch ' + url + ': ' + response.statusText);
+      return parseWKB(await response.arrayBuffer());
+    }
+
+    function calculate(latlng) {
+      try {
+        const { lat, lng } = latlng;
+        const onLand = pointInMultiPolygon(lng, lat, landGeom);
+        const [cx, cy] = nearestPointOnMultiPolygon(lng, lat, onLand ? oceanGeom : landGeom);
+        const km = haversineMeters(lat, lng, cy, cx) / 1000;
+        const miles = km * 0.62137;
+
+        if (marker) marker.remove();
+        if (coastMarker) coastMarker.remove();
+        marker = L.marker([lat, lng]).addTo(map);
+        coastMarker = L.marker([cy, cx]).addTo(map);
+        map.fitBounds([[lat, lng], [cy, cx]], { padding: [50, 50] });
+
+        const dist = km > 2
+          ? 'About ' + km.toFixed(0) + ' km / ' + miles.toFixed(0) + ' miles'
+          : 'Less than two km / one mile';
+        msg.innerHTML = onLand ? dist : dist + ' from land!';
+      } catch (e) {
+        msg.innerHTML = 'Calculation error: ' + e.message;
+        console.error(e);
+      }
+    }
+
+    function runCalculate(latlng) {
+      msg.innerHTML = 'Calculating&hellip;';
+      setTimeout(() => calculate(latlng), 10);
+    }
+
+    Promise.all([loadWKB('data/land.bin'), loadWKB('data/ocean.bin')])
+      .then(([land, ocean]) => {
+        landGeom = land;
+        oceanGeom = ocean;
+        if (pendingLatlng) {
+          runCalculate(pendingLatlng);
+          pendingLatlng = null;
+        } else if (!geolocating) {
+          msg.innerHTML = 'Select location';
+        }
+      })
+      .catch(err => { msg.innerHTML = 'Error loading data: ' + err.message; console.error(err); });
+
+    function geolocate() {
+      if (!navigator.geolocation) {
+        if (landGeom) msg.innerHTML = 'Select location';
+        return;
+      }
+      geolocating = true;
+      msg.innerHTML = 'Requesting current location&hellip;';
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => {
+          geolocating = false;
+          const latlng = { lat: coords.latitude, lng: coords.longitude };
+          map.setView([latlng.lat, latlng.lng], 8);
+          if (landGeom) runCalculate(latlng);
+          else pendingLatlng = latlng;
+        },
+        () => {
+          geolocating = false;
+          msg.innerHTML = landGeom ? 'Select location' : 'Loading data&hellip;';
+        }
+      );
+    }
+
+    map.on('click', e => { if (landGeom) runCalculate(e.latlng); });
+    document.getElementById('geolink').addEventListener('click', e => { e.preventDefault(); geolocate(); });
+    geolocate();
+  </script>
+</body>
+</html>
